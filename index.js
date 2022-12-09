@@ -36,7 +36,7 @@ app.get("/", (req, res) => {
 // Adding new User
 app.post("/api/users", async (req, res) => {
   if (req.body.username === "")
-    res.json({ message: "username field cannot be empty." });
+    return res.json({ message: "username field cannot be empty." });
 
   const userExists = await User.findOne({ username: req.body.username });
 
@@ -45,12 +45,12 @@ app.post("/api/users", async (req, res) => {
       username: req.body.username,
     });
     await newUser.save();
-    res.json({
+    return res.json({
       username: newUser.username,
       _id: newUser._id,
     });
   } else {
-    res.json({
+    return res.json({
       username: userExists.username,
       _id: userExists._id,
     });
@@ -61,9 +61,9 @@ app.post("/api/users", async (req, res) => {
 app.get("/api/users", async (req, res) => {
   try {
     let allUsers = await User.find({});
-    res.json(allUsers);
+    return res.json(allUsers);
   } catch (err) {
-    res.json({
+    return res.json({
       error: err.message,
     });
   }
@@ -77,23 +77,23 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
     req.body.date === undefined ? new Date() : new Date(req.body.date);
 
   if (!description || !duration) {
-    res.json({
+    return res.json({
       message: "description and duration are required.",
     });
   }
   if (isNaN(duration)) {
-    res.json({
+    return res.json({
       message: "Duration must be a number.",
     });
   }
   if (date.toString() === "Invalid Date") {
-    res.json({
+    return res.json({
       message: "Date is not valid.",
     });
   }
   const user = await User.findById(_id);
   if (!user) {
-    res.json({ error: "User don't exist." });
+    return res.json({ error: "User don't exist." });
   }
 
   const newLog = new Exercise({
@@ -105,7 +105,7 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
 
   await newLog.save();
 
-  res.json({
+  return res.json({
     username: user.username,
     description: newLog.description,
     duration: newLog.duration,
@@ -120,7 +120,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
 
   const fetchUser = await User.findById(_id);
   if (!fetchUser) {
-    res.json({
+    return res.json({
       message: "User not found.",
     });
   }
@@ -128,7 +128,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
 
   if (from && to) {
     if (from.toString() === "Invalid Date" || to.toString() === "Invalid Date")
-      res.json({
+      return res.json({
         message: "Invalid date format.",
       });
     filter = {
@@ -140,7 +140,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     };
   } else if (from) {
     if (from.toString() === "Invalid Date")
-      res.json({
+      return res.json({
         message: "Invalid date format.",
       });
     filter = {
@@ -151,7 +151,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     };
   } else if (to) {
     if (to.toString() === "Invalid Date")
-      res.json({
+      return res.json({
         message: "Invalid date format.",
       });
     filter = {
@@ -165,7 +165,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
   if (limit) {
     limit = parseInt(limit);
     if (isNaN(limit)) {
-      res.json({
+      return res.json({
         message: "Limit must be a number.",
       });
     }
@@ -183,7 +183,7 @@ app.get("/api/users/:_id/logs", async (req, res) => {
     };
   });
 
-  res.json({
+  return res.json({
     username: fetchUser.username,
     count: filteredLogs.length,
     _id: fetchUser._id,
